@@ -10,6 +10,7 @@ import Progress from "./Progress";
 import FinishScreen from "./FinishScreen";
 import Timer from "./Timer";
 import Footer from "./Footer";
+import questionsData from "./questionsData"; // Import questions data
 
 const SECS_PER_QUES = 30;
 const initialState = {
@@ -20,7 +21,7 @@ const initialState = {
   answer: null,
   points: 0,
   highscore: 0,
-  secondsRemaining:60
+  secondsRemaining: 60,
 };
 
 function reducer(state, action) {
@@ -40,7 +41,7 @@ function reducer(state, action) {
       return {
         ...state,
         status: "active",
-        secondsRemaining: state.questions.length * SECS_PER_QUES
+        secondsRemaining: state.questions.length * SECS_PER_QUES,
       };
     case "newAnswer":
       const question = state.questions.at(state.index);
@@ -69,41 +70,32 @@ function reducer(state, action) {
       return {
         ...initialState,
         questions: state.questions,
-        status:"ready"
+        status: "ready",
       };
-      case"tick":
-      return{
+    case "tick":
+      return {
         ...state,
-        secondsRemaining:state.secondsRemaining-1,
-        status: state.secondsRemaining === 0 ? "finished" : state.status
-      }
+        secondsRemaining: state.secondsRemaining - 1,
+        status: state.secondsRemaining === 0 ? "finished" : state.status,
+      };
     default:
       throw new Error("Action");
   }
 }
 
 const App = () => {
-  const [{ questions, status, index, answer, points, highscore, secondsRemaining }, dispatch] =
-    useReducer(reducer, initialState);
+  const [
+    { questions, status, index, answer, points, highscore, secondsRemaining },
+    dispatch,
+  ] = useReducer(reducer, initialState);
 
   const numQuestions = questions.length;
-  const maxPossiblePoints = questions.reduce(
-    (prev, cur) => cur.points + prev,
-    0
-  );
+  const maxPossiblePoints = questions.reduce((prev, cur) => cur.points + prev, 0);
 
   useEffect(function () {
-    async function getData() {
-      try {
-        const res = await fetch("http://localhost:9000/questions");
-        const data = await res.json();
-        dispatch({ type: "dataRecived", payload: data });
-      } catch (err) {
-        dispatch({ type: "dataFailed" });
-      }
-    }
-    getData();
+    dispatch({ type: "dataRecived", payload: questionsData });
   }, []);
+
   return (
     <div className="app">
       <Header />
@@ -128,13 +120,13 @@ const App = () => {
               answer={answer}
             />
             <Footer>
-            <Timer dispatch={dispatch} secondsRemaining={secondsRemaining}/>
-            <NextButton
-              dispatch={dispatch}
-              answer={answer}
-              index={index}
-              numQuestions={numQuestions}
-            />
+              <Timer dispatch={dispatch} secondsRemaining={secondsRemaining} />
+              <NextButton
+                dispatch={dispatch}
+                answer={answer}
+                index={index}
+                numQuestions={numQuestions}
+              />
             </Footer>
           </>
         )}
